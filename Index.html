@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BRADLEYtrade — Discipline OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0b0e; --surface:#111318; --surface2:#181c24; --surface3:#1e2330;
+  --border:#252b3a; --border2:#2e3650;
+  --accent:#2563eb; --accent2:#1d4ed8; --accent-glow:rgba(37,99,235,0.16);
+  --gold:#f0b429; --gold-dim:rgba(240,180,41,0.11);
+  --green:#22c55e; --green-dim:rgba(34,197,94,0.11);
+  --red:#ef4444; --red-dim:rgba(239,68,68,0.11);
+  --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.11);
+  --text:#e8eaf0; --text2:#8892a4; --text3:#4f5a6e;
+  --mono:'SF Mono','Fira Code','Courier New',monospace;
+  --r:12px; --rs:8px;
+  --tr:0.16s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;font-size:16px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,11,14,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:56px}
+.brand{font-size:13px;font-weight:700;letter-spacing:0.06em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.tabs{display:flex;gap:2px}
+.tab{padding:8px 10px;border-radius:var(--rs);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:var(--tr);border:none;background:transparent;white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.on{color:var(--text);background:var(--surface3)}
+
+/* LAYOUT */
+#main{padding-top:56px;min-height:100vh}
+.view{display:none}.view.on{display:block}
+.wrap{max-width:840px;margin:0 auto;padding:22px 14px 80px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.ctitle{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+
+/* TYPE */
+h1{font-size:24px;font-weight:700;line-height:1.2}
+.lbl{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:7px;display:block}
+.ph{color:var(--text2);font-size:13px;margin-top:4px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;border:none;transition:var(--tr);min-height:50px;white-space:nowrap}
+.bp{background:var(--accent);color:#fff}.bp:hover{background:var(--accent2)}
+.bs{background:var(--surface3);color:var(--text);border:1px solid var(--border2)}.bs:hover{background:var(--border)}
+.bd{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25)}
+.bg{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,180,41,0.25)}
+.bsu{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.25)}
+.full{width:100%}
+.blg{padding:17px 24px;font-size:16px;min-height:56px;border-radius:var(--r)}
+
+/* INPUTS */
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:16px;padding:13px 15px;transition:var(--tr);outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+textarea{resize:vertical;min-height:88px;font-family:inherit}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892a4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+.fg{margin-bottom:15px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+/* CHECKBOXES */
+.ci{display:flex;align-items:flex-start;gap:13px;padding:12px 13px;border-radius:var(--rs);cursor:pointer;transition:var(--tr);border:1px solid transparent;margin-bottom:5px}
+.ci:hover{background:var(--surface2);border-color:var(--border)}
+.ci.ck{background:var(--green-dim);border-color:rgba(34,197,94,0.18)}
+.ci.opt.ck{background:var(--accent-glow);border-color:rgba(37,99,235,0.2)}
+.cb{width:23px;height:23px;min-width:23px;border-radius:6px;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;transition:var(--tr);margin-top:1px}
+.ci.ck .cb{background:var(--green);border-color:var(--green)}
+.ci.opt.ck .cb{background:var(--accent);border-color:var(--accent)}
+.cb::after{content:'';display:none;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+.ci.ck .cb::after{display:block}
+.clbl{font-size:14px;color:var(--text2);line-height:1.4;flex:1}
+.ci.ck .clbl{color:var(--text)}
+.otag{font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--accent);background:var(--accent-glow);padding:2px 7px;border-radius:20px;margin-top:2px;white-space:nowrap}
+.cgt{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin:18px 0 7px;padding-left:2px}
+
+/* PROGRESS */
+.pbar-wrap{background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;margin-top:9px}
+.pbar-fill{height:100%;border-radius:4px;background:var(--accent);transition:width 0.3s}
+
+/* RADIO PILLS */
+.rg{display:flex;gap:7px;flex-wrap:wrap}
+.rp{padding:10px 17px;border-radius:50px;border:1.5px solid var(--border2);font-size:14px;font-weight:500;cursor:pointer;transition:var(--tr);color:var(--text2);min-height:44px;display:flex;align-items:center}
+.rp:hover{border-color:var(--accent);color:var(--text)}
+.rp.on{border-color:var(--accent);background:var(--accent-glow);color:var(--text)}
+.rp.gn.on{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+.rp.rd.on{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+.rp.am.on{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+.rp.gl.on{border-color:var(--gold);background:var(--gold-dim);color:var(--gold)}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:16px 14px}
+.sv{font-size:26px;font-weight:700;font-family:var(--mono);letter-spacing:-0.5px;line-height:1.1}
+.sn{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-top:5px}
+
+/* SCORE */
+.score-big{font-size:68px;font-weight:800;font-family:var(--mono);letter-spacing:-2px;line-height:1}
+.score-lbl{font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:7px}
+.s-elite{color:var(--gold)}.s-good{color:var(--green)}.s-incon{color:var(--amber)}.s-gamble{color:var(--red)}
+
+/* SESSION CARDS */
+.sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.scard{background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);padding:22px 16px;cursor:pointer;transition:var(--tr);text-align:center}
+.scard:hover{border-color:var(--border2);background:var(--surface3)}
+.scard.on{border-color:var(--accent);background:var(--accent-glow)}
+.sflag{font-size:32px;margin-bottom:8px}
+.sname{font-size:15px;font-weight:700}
+.stime{font-size:11px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
+
+/* STEP DOTS */
+.stepdots{display:flex;gap:7px;margin-bottom:22px}
+.sd{flex:1;height:4px;border-radius:2px;background:var(--surface3);transition:var(--tr)}
+.sd.on{background:var(--accent)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase}
+.bl{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,180,41,0.2)}
+.bn{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(37,99,235,0.2)}
+
+/* TRADE LIST */
+.ti{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tdir{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.tdir.buy{background:var(--green-dim);color:var(--green)}.tdir.sell{background:var(--red-dim);color:var(--red)}
+.tres{font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.tres.tp{background:var(--green-dim);color:var(--green)}
+.tres.early{background:var(--gold-dim);color:var(--gold)}
+.tres.be{background:var(--amber-dim);color:var(--amber)}
+.tres.loss{background:var(--red-dim);color:var(--red)}
+.tres.sl-wide{background:rgba(239,68,68,0.07);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.tres.pending{background:var(--surface3);color:var(--text2)}
+.tmeta{font-size:12px;color:var(--text2)}
+.tscore{font-family:var(--mono);font-size:14px;font-weight:700}
+
+/* ACTIVE BANNER */
+.ab{background:linear-gradient(135deg,var(--accent-glow),transparent);border:1px solid var(--accent);border-radius:var(--r);padding:18px 20px;margin-bottom:12px}
+.adot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:7px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.4)}}
+
+/* MGMT RULES */
+.mr{display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:var(--rs);background:var(--surface2);border:1px solid var(--border);margin-bottom:9px}
+.mri{font-size:18px}.mrt{font-size:13px;color:var(--text2);line-height:1.5}
+.mrt strong{color:var(--text)}
+
+/* BREAKDOWN */
+.bkrow{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.bkrow:last-child{border-bottom:none}
+.bklbl{color:var(--text2)}.bkval{font-family:var(--mono);font-weight:600}
+.bkval.neg{color:var(--red)}.bkval.pos{color:var(--green)}
+
+/* RULE BAR */
+.rb{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.rblbl{font-size:12px;color:var(--text2);flex:1}
+.rbtrack{flex:2;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.rbfill{height:100%;background:var(--red);border-radius:3px}
+.rbct{font-family:var(--mono);font-size:12px;color:var(--text2);min-width:24px;text-align:right}
+
+/* CHART */
+.chwrap{position:relative;height:190px;margin-top:7px}
+
+/* FILE UPLOAD */
+.fu{border:2px dashed var(--border2);border-radius:var(--rs);padding:24px;text-align:center;cursor:pointer;transition:var(--tr)}
+.fu:hover{border-color:var(--accent);background:var(--accent-glow)}
+.fui{font-size:24px;margin-bottom:6px}
+.fut{font-size:13px;color:var(--text2)}
+
+/* EMPTY */
+.empty{text-align:center;padding:52px 16px;color:var(--text3)}
+.empty-ico{font-size:44px;margin-bottom:14px}
+.empty h3{font-size:17px;color:var(--text2);margin-bottom:7px}
+.empty p{font-size:13px}
+
+/* PAGE HEADER */
+.ph-block{margin-bottom:24px;padding-bottom:18px;border-top:0;border-bottom:1px solid var(--border)}
+.ph-block h1{margin-bottom:5px}
+.ph-block p{color:var(--text2);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:13px 22px;border-radius:var(--r);font-size:14px;font-weight:500;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;pointer-events:none;transition:opacity 0.3s}
+.hidden{display:none!important}
+
+/* MISC */
+.div{height:1px;background:var(--border);margin:17px 0}
+.step-lbl{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+
+/* CHECKLIST SCORE PREVIEW */
+.score-preview{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface2);border-radius:var(--rs);margin-bottom:12px}
+.sp-label{font-size:12px;color:var(--text2)}
+.sp-val{font-family:var(--mono);font-size:18px;font-weight:700}
+
+/* RESULT NOTES */
+.result-note{font-size:12px;color:var(--text3);margin-top:6px;padding-left:2px}
+
+@media(max-width:600px){
+  .tabs .tab{padding:7px 8px;font-size:11px}
+  h1{font-size:21px}
+  .fr{grid-template-columns:1fr}
+  .sgrid2{grid-template-columns:1fr}
+  .wrap{padding:18px 12px 80px}
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="brand">BRADLEY<span>trade</span></div>
+  <div class="tabs">
+    <button class="tab on" onclick="go('dashboard')">Home</button>
+    <button class="tab" onclick="go('new')">+ Trade</button>
+    <button class="tab" onclick="go('active')">Active</button>
+    <button class="tab" onclick="go('history')">History</button>
+    <button class="tab" onclick="go('analytics')">Stats</button>
+  </div>
+</nav>
+
+<div id="main">
+
+<!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+<div id="v-dashboard" class="view on">
+  <div class="wrap">
+    <div class="ph-block">
+      <h1>Discipline OS</h1>
+      <p id="dd-date"></p>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Discipline Score (Average)</div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:20px 0 14px">
+        <div class="score-big" id="dd-score">—</div>
+        <div class="score-lbl" id="dd-slbl">No trades yet</div>
+      </div>
+      <div class="pbar-wrap"><div class="pbar-fill" id="dd-sbar" style="width:0%"></div></div>
+    </div>
+
+    <div class="sgrid">
+      <div class="sc"><div class="sv" id="dd-total">0</div><div class="sn">Total Trades</div></div>
+      <div class="sc"><div class="sv" id="dd-wr">—</div><div class="sn">Profitable Rate</div></div>
+      <div class="sc"><div class="sv" id="dd-lwr">—</div><div class="sn">London Win %</div></div>
+      <div class="sc"><div class="sv" id="dd-nwr">—</div><div class="sn">NY Win %</div></div>
+    </div>
+
+    <div id="dd-ab" class="ab hidden">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="adot"></span><strong style="font-size:15px">Active Trade</strong>
+      </div>
+      <div id="dd-ai" style="font-size:13px;color:var(--text2)"></div>
+      <button class="btn bs full" style="margin-top:12px;min-height:44px" onclick="go('active')">Manage →</button>
+    </div>
+
+    <button class="btn bp full blg" style="margin-top:6px" onclick="go('new')">Start Pre-Trade Checklist</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ NEW TRADE ═══════════════════ -->
+<div id="v-new" class="view">
+  <div class="wrap">
+
+    <!-- STEP DOTS -->
+    <div class="stepdots">
+      <div class="sd on" id="dot1"></div>
+      <div class="sd" id="dot2"></div>
+      <div class="sd" id="dot3"></div>
+    </div>
+
+    <!-- STEP 1: SESSION -->
+    <div id="s1">
+      <div class="ph-block">
+        <div class="step-lbl">Step 1 of 3</div>
+        <h1>Select Session</h1>
+      </div>
+      <div class="sgrid2">
+        <div class="scard" id="sc-london" onclick="pickSess('london')">
+          <div class="sflag">🇬🇧</div>
+          <div class="sname">London</div>
+          <div class="stime">08:00 – 12:00 GMT</div>
+        </div>
+        <div class="scard" id="sc-ny" onclick="pickSess('ny')">
+          <div class="sflag">🇺🇸</div>
+          <div class="sname">New York</div>
+          <div class="stime">13:30 – 17:00 GMT</div>
+        </div>
+      </div>
+      <button class="btn bp full blg" id="s1-next" onclick="toStep(2)" disabled>Continue →</button>
+    </div>
+
+    <!-- STEP 2: CHECKLIST -->
+    <div id="s2" class="hidden">
+      <div class="ph-block">
+        <div class="step-lbl">Step 2 of 3</div>
+        <h1>Pre-Trade Checklist</h1>
+        <div id="s2-badge" style="margin-top:8px"></div>
+        <p style="margin-top:8px;font-size:13px;color:var(--text3)">Optional items are informational only — they do not affect your score.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+          <div class="ctitle" style="margin:0">Required items</div>
+          <span style="font-family:var(--mono);font-size:13px;color:var(--text2)" id="cl-count">0/0</span>
+        </div>
+        <div class="pbar-wrap"><div class="pbar-fill" id="cl-bar" style="width:0%"></div></div>
+      </div>
+
+      <!-- live score preview -->
+      <div class="score-preview">
+        <span class="sp-label">Projected Discipline Score</span>
+        <span class="sp-val" id="cl-score-preview">100</span>
+      </div>
+
+      <div id="cl-groups"></div>
+
+      <button class="btn bp full blg" onclick="toStep(3)" style="margin-top:8px">Continue to Trade Entry →</button>
+      <button class="btn bs full" style="margin-top:9px" onclick="toStep(1)">← Back</button>
+    </div>
+
+    <!-- STEP 3: TRADE ENTRY -->
+    <div id="s3" class="hidden">
+      <div class="ph-block">
+        <div class="step-lbl">Step 3 of 3</div>
+        <h1>Trade Entry</h1>
+        <p>Log your trade. You'll record the outcome after it closes.</p>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Trade Details</div>
+
+        <div class="fg">
+          <label class="lbl">Date</label>
+          <input type="date" id="t-date">
+        </div>
+
+        <div class="fg">
+          <label class="lbl">Direction</label>
+          <div class="rg">
+            <div class="rp gn" onclick="pickDir('buy',this)">Buy / Long</div>
+            <div class="rp rd" onclick="pickDir('sell',this)">Sell / Short</div>
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="lbl">Entry Price</label>
+            <input type="number" id="t-entry" placeholder="0.00000" step="any">
+          </div>
+          <div class="fg">
+            <label class="lbl">Stop Loss</label>
+            <input type="number" id="t-sl" placeholder="0.00000" step="any">
+          </div>
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="lbl">Take Profit</label>
+            <input type="number" id="t-tp" placeholder="0.00000" step="any">
+          </div>
+          <div class="fg">
+            <label class="lbl">Risk %</label>
+            <input type="number" id="t-risk" placeholder="1.0" step="0.1">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="lbl">Screenshot</label>
+          <div class="fu" onclick="document.getElementById('t-ss').click()">
+            <div class="fui">📸</div>
+            <div class="fut" id="ss-txt">Tap to attach chart screenshot</div>
+            <input type="file" id="t-ss" accept="image/*" style="display:none" onchange="handleSS(this)">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="lbl">Notes</label>
+          <textarea id="t-notes" placeholder="Setup reasoning, confluences, anything relevant..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn bp full blg" onclick="logTrade()">Go Live →</button>
+      <button class="btn bs full" style="margin-top:9px" onclick="toStep(2)">← Back to Checklist</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ ACTIVE ═══════════════════ -->
+<div id="v-active" class="view">
+  <div class="wrap">
+    <div class="ph-block">
+      <h1>Active Trade</h1>
+      <p>Manage your live position.</p>
+    </div>
+
+    <div id="no-active" class="empty">
+      <div class="empty-ico">📊</div>
+      <h3>No Active Trade</h3>
+      <p>Use the + Trade tab to run through the checklist and log a trade.</p>
+      <button class="btn bp" style="margin-top:18px" onclick="go('new')">New Trade</button>
+    </div>
+
+    <div id="active-panel" class="hidden">
+
+      <div class="ab">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <span class="adot"></span>
+          <strong id="at-title" style="font-size:16px"></strong>
+          <span id="at-badge"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div><div class="lbl" style="margin-bottom:3px">Entry</div><div id="at-entry" style="font-family:var(--mono);font-size:16px;font-weight:700"></div></div>
+          <div><div class="lbl" style="margin-bottom:3px">Stop Loss</div><div id="at-sl" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)"></div></div>
+          <div><div class="lbl" style="margin-bottom:3px">Take Profit</div><div id="at-tp" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)"></div></div>
+        </div>
+      </div>
+
+      <!-- Hold rules — informational only -->
+      <div class="card">
+        <div class="ctitle">Hour Hold Rules — Check Before Rolling</div>
+        <div class="mr">
+          <span class="mri">⏰</span>
+          <div class="mrt"><strong>Holding to next hour?</strong> Trade must be in profit AND profit must cover the first 15-min manipulation wick. If not — move SL to BE or close.</div>
+        </div>
+        <div class="ci" id="hc1" onclick="togHold(1)"><div class="cb"></div><span class="clbl">Trade is in profit</span></div>
+        <div class="ci" id="hc2" onclick="togHold(2)"><div class="cb"></div><span class="clbl">Profit allows first 15-minute manipulation wick</span></div>
+        <div id="hold-warn" class="hidden" style="margin-top:12px;padding:13px 16px;background:var(--amber-dim);border:1px solid rgba(245,158,11,0.3);border-radius:var(--rs);font-size:14px;color:var(--amber)">
+          ⚠️ Move stop to break even or exit trade.
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <button class="btn bg full" onclick="showToast('Stop moved to break even.')">✋ Move to B/E</button>
+        <button class="btn bd full" onclick="openClose()">Close Trade</button>
+      </div>
+
+      <!-- CLOSE PANEL -->
+      <div id="close-panel" class="hidden">
+        <div class="card">
+          <div class="ctitle">Trade Outcome</div>
+
+          <div class="fg">
+            <label class="lbl">How did the trade close?</label>
+            <div class="rg">
+              <div class="rp gn" onclick="pickResult('tp',this)">Hit TP</div>
+              <div class="rp gl" onclick="pickResult('early',this)">Closed Early (Profit)</div>
+              <div class="rp am" onclick="pickResult('be',this)">Break Even</div>
+              <div class="rp rd" onclick="pickResult('loss',this)">Loss (SL hit)</div>
+              <div class="rp rd" onclick="pickResult('sl-wide',this)">Loss (Widened SL)</div>
+            </div>
+            <div id="result-note" class="result-note"></div>
+          </div>
+
+          <div class="div"></div>
+
+          <div class="fg">
+            <label class="lbl">Psychology during this trade</label>
+            <div class="rg" id="psych-rg">
+              <div class="rp gn" onclick="pickPsych('confident',this)">Confident</div>
+              <div class="rp" onclick="pickPsych('neutral',this)">Neutral</div>
+              <div class="rp am" onclick="pickPsych('fomo',this)">FOMO</div>
+              <div class="rp rd" onclick="pickPsych('revenge',this)">Revenge Trade</div>
+              <div class="rp rd" onclick="pickPsych('impulsive',this)">Impulsive</div>
+            </div>
+          </div>
+
+          <div class="div"></div>
+
+          <div class="fg">
+            <label class="lbl">Did you follow all your rules?</label>
+            <div class="rg">
+              <div class="rp gn" onclick="pickRF('yes',this)">Yes</div>
+              <div class="rp rd" onclick="pickRF('no',this)">No</div>
+            </div>
+          </div>
+
+          <div id="rb-box" class="fg hidden">
+            <label class="lbl">Which rule did you break?</label>
+            <input type="text" id="t-rb" placeholder="e.g. Entered on a 5-min wick">
+          </div>
+
+          <div class="fg">
+            <label class="lbl">Lessons Learned</label>
+            <textarea id="t-lessons" placeholder="What does this trade teach you?" style="min-height:120px"></textarea>
+          </div>
+
+          <button class="btn bp full blg" onclick="closeTrade()">Submit & Close Trade</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ HISTORY ═══════════════════ -->
+<div id="v-history" class="view">
+  <div class="wrap">
+    <div class="ph-block">
+      <h1>Trade History</h1>
+      <p>All closed trades.</p>
+    </div>
+    <div id="hist-empty" class="empty">
+      <div class="empty-ico">📋</div>
+      <h3>No Trades Yet</h3>
+      <p>Closed trades appear here.</p>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ANALYTICS ═══════════════════ -->
+<div id="v-analytics" class="view">
+  <div class="wrap">
+    <div class="ph-block">
+      <h1>Analytics</h1>
+      <p>Performance & discipline breakdown.</p>
+    </div>
+
+    <div id="a-empty" class="empty">
+      <div class="empty-ico">📈</div>
+      <h3>No Data Yet</h3>
+      <p>Close at least one trade to see stats.</p>
+    </div>
+
+    <div id="a-panel" class="hidden">
+
+      <div class="card">
+        <div class="ctitle">Average Discipline Score</div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:14px 0 10px">
+          <div class="score-big" id="a-score">—</div>
+          <div class="score-lbl" id="a-slbl"></div>
+        </div>
+        <div class="pbar-wrap"><div class="pbar-fill" id="a-sbar" style="width:0%"></div></div>
+        <div style="margin-top:18px">
+          <div class="bkrow" style="border-bottom:1px solid var(--border)"><span style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:0.1em;text-transform:uppercase">Score guide</span></div>
+          <div class="bkrow"><span class="bklbl">90–100</span><span class="bkval" style="color:var(--gold)">Elite Discipline</span></div>
+          <div class="bkrow"><span class="bklbl">80–89</span><span class="bkval" style="color:var(--green)">Good Discipline</span></div>
+          <div class="bkrow"><span class="bklbl">70–79</span><span class="bkval" style="color:var(--amber)">Inconsistent</span></div>
+          <div class="bkrow"><span class="bklbl">Below 70</span><span class="bkval" style="color:var(--red)">Gambling Behaviour</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Session Performance</div>
+        <div class="sgrid">
+          <div class="sc"><div class="sv" id="a-lt">0</div><div class="sn">London Trades</div></div>
+          <div class="sc"><div class="sv" id="a-nt">0</div><div class="sn">NY Trades</div></div>
+          <div class="sc"><div class="sv" id="a-lw">—</div><div class="sn">London Profit %</div></div>
+          <div class="sc"><div class="sv" id="a-nw">—</div><div class="sn">NY Profit %</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Key Metrics</div>
+        <div id="a-bk-metrics">
+          <div class="bkrow"><span class="bklbl">Total Trades</span><span class="bkval" id="a-total">0</span></div>
+          <div class="bkrow"><span class="bklbl">Hit TP</span><span class="bkval pos" id="a-tp">—</span></div>
+          <div class="bkrow"><span class="bklbl">Closed Early (Profit)</span><span class="bkval" id="a-early">—</span></div>
+          <div class="bkrow"><span class="bklbl">Break Even</span><span class="bkval" id="a-be">—</span></div>
+          <div class="bkrow"><span class="bklbl">Loss (SL hit)</span><span class="bkval neg" id="a-loss">—</span></div>
+          <div class="bkrow"><span class="bklbl">Loss (Widened SL)</span><span class="bkval neg" id="a-sl-wide">—</span></div>
+          <div class="bkrow"><span class="bklbl">Avg Risk %</span><span class="bkval" id="a-avgrisk">—</span></div>
+          <div class="bkrow"><span class="bklbl">Rule Follow Rate</span><span class="bkval" id="a-rfrate">—</span></div>
+          <div class="bkrow"><span class="bklbl">Best Session</span><span class="bkval" id="a-best">—</span></div>
+          <div class="bkrow"><span class="bklbl">Worst Session</span><span class="bkval" id="a-worst">—</span></div>
+          <div class="bkrow"><span class="bklbl">Consecutive Violations</span><span class="bkval neg" id="a-consec">0</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Psychology Breakdown</div>
+        <div class="bkrow"><span class="bklbl">Confident</span><span class="bkval pos" id="a-conf">0</span></div>
+        <div class="bkrow"><span class="bklbl">Neutral</span><span class="bkval" id="a-neut">0</span></div>
+        <div class="bkrow"><span class="bklbl">FOMO</span><span class="bkval neg" id="a-fomo">0</span></div>
+        <div class="bkrow"><span class="bklbl">Revenge Trade</span><span class="bkval neg" id="a-rev">0</span></div>
+        <div class="bkrow"><span class="bklbl">Impulsive</span><span class="bkval neg" id="a-imp">0</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Most Noted Rule Breaks</div>
+        <div id="a-rules"><p style="font-size:13px;color:var(--text3)">No rule breaks noted.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Trade Outcomes</div>
+        <div class="chwrap"><canvas id="ch-results"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Discipline Score Trend</div>
+        <div class="chwrap"><canvas id="ch-trend"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Session Profit Rate</div>
+        <div class="chwrap"><canvas id="ch-sess"></canvas></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CHECKLISTS
+// ══════════════════════════════════════════
+const LONDON = [
+  { group:'Market Preparation', items:[
+    { id:'l_trend', label:'Trend identified', opt:false }
+  ]},
+  { group:'Asian Session Markup', items:[
+    { id:'l_ah', label:'Asian High marked', opt:false },
+    { id:'l_al', label:'Asian Low marked', opt:false },
+    { id:'l_aa', label:'Asian Average marked', opt:false },
+    { id:'l_aa2', label:'Second Average marked (if consolidation is difficult)', opt:true }
+  ]},
+  { group:'Entry Conditions', items:[
+    { id:'l_touched', label:'Price touched a marked level', opt:false },
+    { id:'l_15m', label:'Touch occurred on a valid 15-minute candle', opt:false },
+    { id:'l_wick', label:'Ignored 5-minute wick noise', opt:false },
+    { id:'l_manip', label:'Waited for first 15-minute manipulation wick to complete', opt:false },
+    { id:'l_trend_e', label:'Entry follows overall trend', opt:true }
+  ]},
+  { group:'Risk Management', items:[
+    { id:'l_sl', label:'Stop loss placed', opt:false },
+    { id:'l_size', label:'Position size calculated', opt:false },
+    { id:'l_riskOk', label:'Risk acceptable', opt:false }
+  ]},
+  { group:'Discipline Confirmation', items:[
+    { id:'l_fomo', label:'This is not a FOMO trade', opt:false },
+    { id:'l_rules', label:'This follows my rule book', opt:false },
+    { id:'l_repeat', label:'I would take this exact trade again tomorrow', opt:false }
+  ]}
+];
+
+const NY = [
+  { group:'Session Preparation', items:[
+    { id:'n_uh', label:'Updated High', opt:false },
+    { id:'n_ul', label:'Updated Low', opt:false },
+    { id:'n_ua', label:'Updated Average', opt:false }
+  ]},
+  { group:'Entry Conditions', items:[
+    { id:'n_touched', label:'Price touched a marked level', opt:false },
+    { id:'n_15m', label:'Touch occurred on a valid 15-minute candle', opt:false },
+    { id:'n_manip', label:'Waited for first 15-minute manipulation wick', opt:false },
+    { id:'n_trend', label:'Entry follows overall trend', opt:true }
+  ]},
+  { group:'Risk Management', items:[
+    { id:'n_sl', label:'Stop loss placed', opt:false },
+    { id:'n_size', label:'Position size calculated', opt:false },
+    { id:'n_riskOk', label:'Risk acceptable', opt:false }
+  ]},
+  { group:'Discipline Confirmation', items:[
+    { id:'n_fomo', label:'This is not FOMO', opt:false },
+    { id:'n_plan', label:'This follows my plan', opt:false },
+    { id:'n_valid', label:'This is a valid setup', opt:false }
+  ]}
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const S = {
+  sess: null, dir: null, result: null, psych: null, rf: null,
+  checks: {}, ss: null,
+  hold: {1:false,2:false}
+};
+
+// ══════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════
+function getTrades(){ try{ return JSON.parse(localStorage.getItem('bt_trades')||'[]'); }catch(e){ return []; } }
+function saveTrades(t){ localStorage.setItem('bt_trades', JSON.stringify(t)); }
+function getActive(){ try{ return JSON.parse(localStorage.getItem('bt_active')||'null'); }catch(e){ return null; } }
+function saveActive(t){ t ? localStorage.setItem('bt_active', JSON.stringify(t)) : localStorage.removeItem('bt_active'); }
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function go(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('v-'+id).classList.add('on');
+  const tmap = {dashboard:0,new:1,active:2,history:3,analytics:4};
+  if(tmap[id]!==undefined) document.querySelectorAll('.tab')[tmap[id]].classList.add('on');
+  if(id==='dashboard') refreshDash();
+  if(id==='history') renderHistory();
+  if(id==='analytics') renderAnalytics();
+  if(id==='active') renderActive();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════
+// STEPS
+// ══════════════════════════════════════════
+function toStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('s'+i).classList.toggle('hidden', i!==n);
+    const d = document.getElementById('dot'+i);
+    d.classList.toggle('on', i<=n);
+  });
+  if(n===2){ buildChecklist(); }
+  if(n===3){ document.getElementById('t-date').value = new Date().toISOString().split('T')[0]; }
+  window.scrollTo(0,0);
+}
+
+function pickSess(s){
+  S.sess = s;
+  document.getElementById('sc-london').classList.toggle('on', s==='london');
+  document.getElementById('sc-ny').classList.toggle('on', s==='ny');
+  document.getElementById('s1-next').disabled = false;
+}
+
+// ══════════════════════════════════════════
+// CHECKLIST
+// ══════════════════════════════════════════
+function getList(){ return S.sess==='london' ? LONDON : NY; }
+function getRequired(){ return getList().flatMap(g=>g.items.filter(i=>!i.opt).map(i=>i.id)); }
+function getAll(){ return getList().flatMap(g=>g.items.map(i=>i.id)); }
+
+function buildChecklist(){
+  const list = getList();
+  const badge = document.getElementById('s2-badge');
+  badge.innerHTML = S.sess==='london'
+    ? '<span class="badge bl">🇬🇧 London Session</span>'
+    : '<span class="badge bn">🇺🇸 New York Session</span>';
+
+  const ctr = document.getElementById('cl-groups');
+  ctr.innerHTML = '';
+  list.forEach(g=>{
+    const gt = document.createElement('div');
+    gt.className = 'cgt'; gt.textContent = g.group;
+    ctr.appendChild(gt);
+    g.items.forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'ci' + (item.opt ? ' opt' : '');
+      el.id = 'ci-'+item.id;
+      el.onclick = ()=>togCheck(item.id);
+      el.innerHTML = `<div class="cb"></div><span class="clbl">${item.label}</span>${item.opt ? '<span class="otag">Optional</span>' : ''}`;
+      ctr.appendChild(el);
+    });
+  });
+  S.checks = {};
+  updateChecklistUI();
+}
+
+function togCheck(id){
+  S.checks[id] = !S.checks[id];
+  document.getElementById('ci-'+id).classList.toggle('ck', !!S.checks[id]);
+  updateChecklistUI();
+}
+
+function updateChecklistUI(){
+  const req = getRequired();
+  const done = req.filter(id=>S.checks[id]).length;
+  const total = req.length;
+  document.getElementById('cl-count').textContent = done+'/'+total;
+  document.getElementById('cl-bar').style.width = (total>0 ? done/total*100 : 0)+'%';
+
+  // Live score preview
+  const score = calcScoreFromChecks(S.checks, null, null, getList());
+  const prev = document.getElementById('cl-score-preview');
+  prev.textContent = score;
+  prev.className = 'sp-val ' + scoreClass(score);
+}
+
+// ══════════════════════════════════════════
+// DIRECTION
+// ══════════════════════════════════════════
+function pickDir(d,el){
+  S.dir = d;
+  document.querySelectorAll('#s3 .rp').forEach(p=>{ if(p.onclick&&p.onclick.toString().includes('pickDir')) p.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+// ══════════════════════════════════════════
+// SCREENSHOT
+// ══════════════════════════════════════════
+function handleSS(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e=>{ S.ss = e.target.result; document.getElementById('ss-txt').textContent='✅ '+f.name; };
+  r.readAsDataURL(f);
+}
+
+// ══════════════════════════════════════════
+// LOG TRADE
+// ══════════════════════════════════════════
+function logTrade(){
+  if(!S.dir){ showToast('Pick a direction first.'); return; }
+  const trade = {
+    id: Date.now().toString(),
+    date: document.getElementById('t-date').value || new Date().toISOString().split('T')[0],
+    sess: S.sess,
+    dir: S.dir,
+    entry: document.getElementById('t-entry').value,
+    sl: document.getElementById('t-sl').value,
+    tp: document.getElementById('t-tp').value,
+    risk: document.getElementById('t-risk').value,
+    notes: document.getElementById('t-notes').value,
+    ss: S.ss,
+    checks: {...S.checks},
+    checklist: getList(),
+    status:'active',
+    result:null, psych:null, rf:null, rb:'', lessons:'',
+    disciplineScore:null,
+    loggedAt: new Date().toISOString()
+  };
+  saveActive(trade);
+  resetNewForm();
+  go('active');
+  showToast('Trade live. Stay disciplined.');
+}
+
+function resetNewForm(){
+  S.sess=null; S.dir=null; S.checks={}; S.ss=null;
+  document.getElementById('sc-london').classList.remove('on');
+  document.getElementById('sc-ny').classList.remove('on');
+  document.getElementById('s1-next').disabled=true;
+  ['t-entry','t-sl','t-tp','t-risk','t-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ss-txt').textContent='Tap to attach chart screenshot';
+  toStep(1);
+}
+
+// ══════════════════════════════════════════
+// ACTIVE
+// ══════════════════════════════════════════
+function renderActive(){
+  const t = getActive();
+  document.getElementById('no-active').classList.toggle('hidden', !!t);
+  document.getElementById('active-panel').classList.toggle('hidden', !t);
+  if(!t) return;
+
+  document.getElementById('at-title').textContent = t.dir.toUpperCase() + ' — ' + t.date;
+  document.getElementById('at-badge').innerHTML = t.sess==='london'
+    ? '<span class="badge bl">🇬🇧 London</span>'
+    : '<span class="badge bn">🇺🇸 New York</span>';
+  document.getElementById('at-entry').textContent = t.entry||'—';
+  document.getElementById('at-sl').textContent = t.sl||'—';
+  document.getElementById('at-tp').textContent = t.tp||'—';
+
+  S.hold={1:false,2:false};
+  document.getElementById('hc1').classList.remove('ck');
+  document.getElementById('hc2').classList.remove('ck');
+  document.getElementById('hold-warn').classList.add('hidden');
+  document.getElementById('close-panel').classList.add('hidden');
+  S.result=null; S.psych=null; S.rf=null;
+}
+
+function togHold(n){
+  S.hold[n]=!S.hold[n];
+  document.getElementById('hc'+n).classList.toggle('ck', S.hold[n]);
+  document.getElementById('hold-warn').classList.toggle('hidden', S.hold[1]&&S.hold[2]);
+}
+
+function openClose(){
+  document.getElementById('close-panel').classList.remove('hidden');
+  document.querySelectorAll('#close-panel .rp').forEach(p=>p.classList.remove('on'));
+  document.getElementById('rb-box').classList.add('hidden');
+  document.getElementById('t-rb').value='';
+  document.getElementById('t-lessons').value='';
+  document.getElementById('result-note').textContent='';
+  S.result=null; S.psych=null; S.rf=null;
+  setTimeout(()=>document.getElementById('close-panel').scrollIntoView({behavior:'smooth'}),100);
+}
+
+const RESULT_NOTES = {
+  tp:'Full target hit. 2.5R delivered.',
+  early:'Closed in profit before TP. Less than full R captured.',
+  be:'Scratch — no loss, no gain.',
+  loss:'SL hit. Accepted loss.',
+  'sl-wide':'SL was widened before hit. Risk management deviation.'
+};
+
+function pickResult(r,el){
+  S.result=r;
+  document.querySelectorAll('#close-panel .rp').forEach(p=>{ if(p.onclick&&p.onclick.toString().includes('pickResult')) p.classList.remove('on'); });
+  el.classList.add('on');
+  document.getElementById('result-note').textContent = RESULT_NOTES[r]||'';
+}
+
+function pickPsych(p,el){
+  S.psych=p;
+  document.querySelectorAll('#psych-rg .rp').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function pickRF(v,el){
+  S.rf=v;
+  document.querySelectorAll('#close-panel .rp').forEach(p=>{ if(p.onclick&&p.onclick.toString().includes('pickRF')) p.classList.remove('on'); });
+  el.classList.add('on');
+  document.getElementById('rb-box').classList.toggle('hidden', v!=='no');
+}
+
+// ══════════════════════════════════════════
+// SCORE CALCULATOR
+// ══════════════════════════════════════════
+function calcScoreFromChecks(checks, psych, rf, list){
+  let score = 100;
+  // Only required items count against score
+  const req = list ? list.flatMap(g=>g.items.filter(i=>!i.opt).map(i=>i.id)) : [];
+  const missing = req.filter(id=>!checks[id]).length;
+  score -= missing * 5;
+  if(psych==='fomo') score -= 20;
+  if(psych==='revenge') score -= 25;
+  if(psych==='impulsive') score -= 15;
+  if(rf==='no') score -= 20;
+  return Math.max(0, score);
+}
+
+function scoreClass(s){
+  if(s>=90) return 's-elite';
+  if(s>=80) return 's-good';
+  if(s>=70) return 's-incon';
+  return 's-gamble';
+}
+function scoreLabel(s){
+  if(s>=90) return 'Elite Discipline';
+  if(s>=80) return 'Good Discipline';
+  if(s>=70) return 'Inconsistent';
+  return 'Gambling Behaviour';
+}
+
+// ══════════════════════════════════════════
+// CLOSE TRADE
+// ══════════════════════════════════════════
+function closeTrade(){
+  if(!S.result){ showToast('Select how the trade closed.'); return; }
+  if(!S.psych){ showToast('Select your psychology.'); return; }
+  if(!S.rf){ showToast('Answer the rule compliance question.'); return; }
+
+  const t = getActive(); if(!t) return;
+  t.result = S.result;
+  t.psych = S.psych;
+  t.rf = S.rf;
+  t.rb = document.getElementById('t-rb').value;
+  t.lessons = document.getElementById('t-lessons').value;
+  t.status = 'closed';
+  t.closedAt = new Date().toISOString();
+  t.disciplineScore = calcScoreFromChecks(t.checks, t.psych, t.rf, t.checklist);
+
+  const trades = getTrades();
+  trades.push(t);
+  saveTrades(trades);
+  saveActive(null);
+
+  S.hold={1:false,2:false};
+  document.getElementById('close-panel').classList.add('hidden');
+  go('history');
+  showToast('Trade closed. Score: '+t.disciplineScore);
+}
+
+// ══════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════
+const RESULT_LABELS = {
+  tp:'Hit TP', early:'Early Profit', be:'Break Even',
+  loss:'Loss (SL)', 'sl-wide':'Loss (Wide SL)', pending:'Pending'
+};
+
+function renderHistory(){
+  const trades = getTrades();
+  document.getElementById('hist-empty').classList.toggle('hidden', trades.length>0);
+  const list = document.getElementById('hist-list');
+  if(!trades.length){ list.innerHTML=''; return; }
+
+  list.innerHTML = [...trades].reverse().map(t=>{
+    const rLabel = RESULT_LABELS[t.result]||'Pending';
+    const rClass = t.result||'pending';
+    const badge = t.sess==='london'
+      ? '<span class="badge bl" style="font-size:10px;padding:3px 8px">🇬🇧 London</span>'
+      : '<span class="badge bn" style="font-size:10px;padding:3px 8px">🇺🇸 NY</span>';
+    const sc = t.disciplineScore;
+    return `<div class="ti">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px">
+          <span class="tdir ${t.dir}">${t.dir.toUpperCase()}</span>
+          <span class="tres ${rClass}">${rLabel}</span>
+          ${badge}
+        </div>
+        <div class="tmeta">${t.date} · Entry: ${t.entry||'—'} · Risk: ${t.risk||'—'}%</div>
+        ${t.psych ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;text-transform:capitalize">Psychology: ${t.psych}</div>` : ''}
+      </div>
+      <div style="text-align:right">
+        <div class="tscore ${sc!==null?scoreClass(sc):''}">${sc!==null?sc:'—'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Score</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════
+let charts = {};
+
+function renderAnalytics(){
+  const trades = getTrades().filter(t=>t.status==='closed');
+  const aEmpty = document.getElementById('a-empty');
+  const aPanel = document.getElementById('a-panel');
+  if(!trades.length){ aEmpty.classList.remove('hidden'); aPanel.classList.add('hidden'); return; }
+  aEmpty.classList.add('hidden'); aPanel.classList.remove('hidden');
+
+  const total = trades.length;
+  const tp = trades.filter(t=>t.result==='tp').length;
+  const early = trades.filter(t=>t.result==='early').length;
+  const be = trades.filter(t=>t.result==='be').length;
+  const loss = trades.filter(t=>t.result==='loss').length;
+  const slWide = trades.filter(t=>t.result==='sl-wide').length;
+  const profitable = tp + early;
+
+  const lon = trades.filter(t=>t.sess==='london');
+  const ny = trades.filter(t=>t.sess==='ny');
+  const lonProfit = lon.filter(t=>t.result==='tp'||t.result==='early').length;
+  const nyProfit = ny.filter(t=>t.result==='tp'||t.result==='early').length;
+  const lonWR = lon.length ? Math.round(lonProfit/lon.length*100) : null;
+  const nyWR = ny.length ? Math.round(nyProfit/ny.length*100) : null;
+
+  const avgScore = Math.round(trades.reduce((s,t)=>s+(t.disciplineScore||0),0)/total);
+  const fomo = trades.filter(t=>t.psych==='fomo').length;
+  const rev = trades.filter(t=>t.psych==='revenge').length;
+  const imp = trades.filter(t=>t.psych==='impulsive').length;
+  const conf = trades.filter(t=>t.psych==='confident').length;
+  const neut = trades.filter(t=>t.psych==='neutral').length;
+  const rf = trades.filter(t=>t.rf==='yes').length;
+  const avgRisk = (trades.reduce((s,t)=>s+parseFloat(t.risk||0),0)/total).toFixed(1);
+
+  let best='—', worst='—';
+  if(lonWR!==null&&nyWR!==null){ best=lonWR>=nyWR?'London':'New York'; worst=lonWR<nyWR?'London':'New York'; }
+  else if(lonWR!==null) best='London';
+  else if(nyWR!==null) best='New York';
+
+  let maxC=0,cur=0;
+  trades.forEach(t=>{ if(t.rf==='no'){cur++;maxC=Math.max(maxC,cur);}else cur=0; });
+
+  // Score
+  const se = document.getElementById('a-score');
+  se.textContent = avgScore; se.className = 'score-big '+scoreClass(avgScore);
+  document.getElementById('a-slbl').textContent = scoreLabel(avgScore);
+  document.getElementById('a-slbl').className = 'score-lbl '+scoreClass(avgScore);
+  document.getElementById('a-sbar').style.width = avgScore+'%';
+
+  document.getElementById('a-lt').textContent = lon.length;
+  document.getElementById('a-nt').textContent = ny.length;
+  document.getElementById('a-lw').textContent = lonWR!==null ? lonWR+'%' : '—';
+  document.getElementById('a-nw').textContent = nyWR!==null ? nyWR+'%' : '—';
+
+  document.getElementById('a-total').textContent = total;
+  document.getElementById('a-tp').textContent = tp+' ('+Math.round(tp/total*100)+'%)';
+  document.getElementById('a-early').textContent = early+' ('+Math.round(early/total*100)+'%)';
+  document.getElementById('a-be').textContent = be+' ('+Math.round(be/total*100)+'%)';
+  document.getElementById('a-loss').textContent = loss+' ('+Math.round(loss/total*100)+'%)';
+  document.getElementById('a-sl-wide').textContent = slWide+' ('+Math.round(slWide/total*100)+'%)';
+  document.getElementById('a-avgrisk').textContent = avgRisk+'%';
+  document.getElementById('a-rfrate').textContent = Math.round(rf/total*100)+'%';
+  document.getElementById('a-best').textContent = best;
+  document.getElementById('a-worst').textContent = worst;
+  document.getElementById('a-consec').textContent = maxC;
+
+  document.getElementById('a-conf').textContent = conf;
+  document.getElementById('a-neut').textContent = neut;
+  document.getElementById('a-fomo').textContent = fomo;
+  document.getElementById('a-rev').textContent = rev;
+  document.getElementById('a-imp').textContent = imp;
+
+  // Most broken rules
+  const rmap = {};
+  trades.filter(t=>t.rb).forEach(t=>{ const k=t.rb.trim().toLowerCase(); if(k) rmap[k]=(rmap[k]||0)+1; });
+  const rsorted = Object.entries(rmap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxr = rsorted.length ? rsorted[0][1] : 1;
+  document.getElementById('a-rules').innerHTML = rsorted.length===0
+    ? '<p style="font-size:13px;color:var(--text3)">No rule breaks noted.</p>'
+    : rsorted.map(([r,c])=>`<div class="rb"><span class="rblbl">${r.charAt(0).toUpperCase()+r.slice(1)}</span><div class="rbtrack"><div class="rbfill" style="width:${c/maxr*100}%"></div></div><span class="rbct">${c}</span></div>`).join('');
+
+  buildCharts(trades, tp, early, be, loss, slWide, lonWR, nyWR);
+}
+
+function buildCharts(trades, tp, early, be, loss, slWide, lonWR, nyWR){
+  const base = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#8892a4', font:{size:12}, boxWidth:12 } } } };
+
+  if(charts.r) charts.r.destroy();
+  charts.r = new Chart(document.getElementById('ch-results').getContext('2d'), {
+    type:'doughnut',
+    data:{ labels:['Hit TP','Early Profit','Break Even','Loss (SL)','Loss (Wide SL)'],
+      datasets:[{ data:[tp,early,be,loss,slWide],
+        backgroundColor:['rgba(34,197,94,0.7)','rgba(240,180,41,0.7)','rgba(245,158,11,0.6)','rgba(239,68,68,0.6)','rgba(239,68,68,0.3)'],
+        borderColor:['#22c55e','#f0b429','#f59e0b','#ef4444','#ef4444'], borderWidth:1 }]
+    },
+    options:{...base, cutout:'60%'}
+  });
+
+  if(charts.t) charts.t.destroy();
+  charts.t = new Chart(document.getElementById('ch-trend').getContext('2d'), {
+    type:'line',
+    data:{ labels:trades.map((_,i)=>'T'+(i+1)),
+      datasets:[{ label:'Discipline Score', data:trades.map(t=>t.disciplineScore||0),
+        borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.1)', borderWidth:2,
+        fill:true, tension:0.4, pointBackgroundColor:'#2563eb', pointRadius:3 }]
+    },
+    options:{...base, scales:{
+      x:{ ticks:{color:'#4f5a6e'}, grid:{color:'#1e2330'} },
+      y:{ min:0, max:100, ticks:{color:'#4f5a6e'}, grid:{color:'#1e2330'} }
+    }}
+  });
+
+  if(charts.s) charts.s.destroy();
+  charts.s = new Chart(document.getElementById('ch-sess').getContext('2d'), {
+    type:'bar',
+    data:{ labels:['London','New York'],
+      datasets:[{ label:'Profit Rate %', data:[lonWR??0,nyWR??0],
+        backgroundColor:['rgba(240,180,41,0.6)','rgba(37,99,235,0.6)'],
+        borderColor:['#f0b429','#2563eb'], borderWidth:1, borderRadius:6 }]
+    },
+    options:{...base, scales:{
+      x:{ ticks:{color:'#8892a4'}, grid:{color:'#1e2330'} },
+      y:{ min:0, max:100, ticks:{color:'#4f5a6e', callback:v=>v+'%'}, grid:{color:'#1e2330'} }
+    }}
+  });
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function refreshDash(){
+  document.getElementById('dd-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const trades = getTrades().filter(t=>t.status==='closed');
+  const active = getActive();
+
+  const banner = document.getElementById('dd-ab');
+  if(active){
+    banner.classList.remove('hidden');
+    document.getElementById('dd-ai').textContent = active.dir.toUpperCase()+' · Entry: '+(active.entry||'—')+' · SL: '+(active.sl||'—')+' · TP: '+(active.tp||'—');
+  } else banner.classList.add('hidden');
+
+  if(!trades.length){
+    ['dd-score','dd-wr','dd-lwr','dd-nwr'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('dd-slbl').textContent='No trades yet';
+    document.getElementById('dd-total').textContent='0';
+    document.getElementById('dd-sbar').style.width='0%';
+    return;
+  }
+
+  const avg = Math.round(trades.reduce((s,t)=>s+(t.disciplineScore||0),0)/trades.length);
+  const se = document.getElementById('dd-score');
+  se.textContent = avg; se.className='score-big '+scoreClass(avg);
+  document.getElementById('dd-slbl').textContent = scoreLabel(avg);
+  document.getElementById('dd-sbar').style.width = avg+'%';
+  document.getElementById('dd-total').textContent = trades.length;
+
+  const profitable = trades.filter(t=>t.result==='tp'||t.result==='early').length;
+  document.getElementById('dd-wr').textContent = Math.round(profitable/trades.length*100)+'%';
+
+  const lon = trades.filter(t=>t.sess==='london');
+  const ny = trades.filter(t=>t.sess==='ny');
+  document.getElementById('dd-lwr').textContent = lon.length ? Math.round(lon.filter(t=>t.result==='tp'||t.result==='early').length/lon.length*100)+'%' : '—';
+  document.getElementById('dd-nwr').textContent = ny.length ? Math.round(ny.filter(t=>t.result==='tp'||t.result==='early').length/ny.length*100)+'%' : '—';
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let tt;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(tt);
+  tt = setTimeout(()=>el.classList.add('hidden'),2600);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{ toStep(1); refreshDash(); });
+</script>
+</body>
+</html>
