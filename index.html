@@ -214,6 +214,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="tab" onclick="go('active')">Active</button>
     <button class="tab" onclick="go('history')">History</button>
     <button class="tab" onclick="go('analytics')">Stats</button>
+    <button class="tab" onclick="go('backup')">Backup</button>
   </div>
 </nav>
 
@@ -599,6 +600,55 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
 </div>
 
+<!-- ═══════════════════ BACKUP / SYNC ═══════════════════ -->
+<div id="v-backup" class="view">
+  <div class="wrap">
+    <div class="ph-block">
+      <h1>Backup & Sync</h1>
+      <p>Move your trade data between iPhone, iPad, and MacBook.</p>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">How This Works</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;">
+        Each device stores its own copy of your trades locally. They don't sync automatically.
+        Export a backup file on one device, send it to your other device (AirDrop, iCloud Drive, Messages, email — whatever's easiest),
+        then import it there. Importing <strong style="color:var(--text)">merges</strong> trades by ID, so you won't get duplicates if you import the same file twice.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Export</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">
+        Saves all closed trades, your active trade, and checklist history into one file.
+      </p>
+      <button class="btn bp full blg" onclick="exportData()">⬇ Export Backup File</button>
+      <div id="export-status" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Import</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">
+        Pick a backup file you exported from another device. Trades will be merged into what's already on this device.
+      </p>
+      <div class="fu" onclick="document.getElementById('import-file').click()">
+        <div style="font-size:24px;margin-bottom:6px;">⬆</div>
+        <div style="font-size:13px;color:var(--text2);" id="import-text">Tap to choose backup file</div>
+        <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="handleImportFile(this)">
+      </div>
+      <div id="import-status" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">This Device</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        Closed trades stored here: <strong style="color:var(--text);font-family:var(--mono);" id="backup-count">0</strong><br>
+        Active trade on this device: <strong style="color:var(--text);" id="backup-active-status">None</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- #main -->
 
 <div id="toast" class="toast hidden"></div>
@@ -677,6 +727,86 @@ function saveTrades(t){ localStorage.setItem('bt_trades', JSON.stringify(t)); }
 function getActive(){ try{ return JSON.parse(localStorage.getItem('bt_active')||'null'); }catch(e){ return null; } }
 function saveActive(t){ t ? localStorage.setItem('bt_active', JSON.stringify(t)) : localStorage.removeItem('bt_active'); }
 
+// ══ BACKUP / EXPORT / IMPORT ══
+function renderBackup(){
+  const trades = getTrades();
+  const active = getActive();
+  document.getElementById('backup-count').textContent = trades.length;
+  document.getElementById('backup-active-status').textContent = active ? (active.direction.toUpperCase()+' · '+active.date) : 'None';
+  document.getElementById('export-status').textContent = '';
+  document.getElementById('import-status').textContent = '';
+  document.getElementById('import-text').textContent = 'Tap to choose backup file';
+}
+
+function exportData(){
+  const payload = {
+    type: 'bradleytrade-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    trades: getTrades(),
+    active: getActive()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'bradleytrade-backup-' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  document.getElementById('export-status').textContent = 'Exported ' + getTrades().length + ' trades. Send this file to your other device.';
+  showToast('Backup exported.');
+}
+
+function handleImportFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('import-text').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(data.type !== 'bradleytrade-backup' || !Array.isArray(data.trades)){
+        document.getElementById('import-status').textContent = 'This doesn\'t look like a BRADLEYtrade backup file.';
+        return;
+      }
+      mergeImportedData(data);
+    } catch(err){
+      document.getElementById('import-status').textContent = 'Could not read that file. Make sure it\'s the exported .json backup.';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function mergeImportedData(data){
+  const existing = getTrades();
+  const existingIds = new Set(existing.map(t => t.id));
+  const incoming = data.trades.filter(t => t && t.id);
+  const newOnes = incoming.filter(t => !existingIds.has(t.id));
+
+  const merged = existing.concat(newOnes);
+  merged.sort((a,b) => new Date(a.date||a.loggedAt||0) - new Date(b.date||b.loggedAt||0));
+  saveTrades(merged);
+
+  // Active trade: only import if this device has no active trade, to avoid overwriting live work
+  let activeNote = '';
+  const currentActive = getActive();
+  if(data.active && !currentActive){
+    saveActive(data.active);
+    activeNote = ' Active trade also imported.';
+  } else if(data.active && currentActive && data.active.id !== currentActive.id){
+    activeNote = ' This device already has a different active trade — that one was not overwritten.';
+  }
+
+  document.getElementById('import-status').textContent =
+    'Added ' + newOnes.length + ' new trade(s). Skipped ' + (incoming.length - newOnes.length) + ' already on this device.' + activeNote;
+  document.getElementById('backup-count').textContent = merged.length;
+  document.getElementById('backup-active-status').textContent = getActive() ? (getActive().direction.toUpperCase()+' · '+getActive().date) : 'None';
+  showToast('Import complete — ' + newOnes.length + ' new trade(s) added.');
+}
+
 // ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
@@ -684,12 +814,13 @@ function go(id){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   document.getElementById('v-'+id).classList.add('on');
-  const tmap = {dashboard:0,new:1,active:2,history:3,analytics:4};
+  const tmap = {dashboard:0,new:1,active:2,history:3,analytics:4,backup:5};
   if(tmap[id]!==undefined) document.querySelectorAll('.tab')[tmap[id]].classList.add('on');
   if(id==='dashboard') refreshDash();
   if(id==='history') renderHistory();
   if(id==='analytics') renderAnalytics();
   if(id==='active') renderActive();
+  if(id==='backup') renderBackup();
   window.scrollTo(0,0);
 }
 
